@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Interactivo NotebookLM: Gestión Académica y Administrativa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&family=Inter:wght@300;400;600&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f5f4; /* Stone 100 - Warm Neutral */
+            color: #1c1917; /* Stone 900 */
+        }
+        
+        h1, h2, h3, h4, .serif-font {
+            font-family: 'Merriweather', serif;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Custom Scrollbar for text areas */
+        .custom-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #e7e5e4;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #a8a29e;
+            border-radius: 4px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #78716c;
+        }
+
+        .notebook-card {
+            background: white;
+            border: 1px solid #e7e5e4;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .notebook-card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .active-tab {
+            border-bottom: 3px solid #4f46e5;
+            color: #4f46e5;
+            font-weight: 600;
+        }
+
+        .step-number {
+            background-color: #4f46e5;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            margin-right: 8px;
+        }
+    </style>
+    <!-- Chosen Palette: Warm Professional (Stone/Indigo) - Minimalistic background with purposeful accent colors for UI elements to maintain academic rigor. -->
+    <!-- Application Structure Plan: The app is designed as a 'Digital Workshop'. It starts with a Dashboard (Context & Data) to visualize the 'Why'. The core is the 'Simulation Lab', a split-view interface where users select a Use Case (Sidebar) and perform the steps interactively (Main Area). This structure was chosen to transform passive reading of the manual into active 'doing', simulating the NotebookLM interface logic (Source -> Tool -> Output). -->
+    <!-- Visualization & Content Choices: 
+         1. Introduction: Contextual text to set the stage.
+         2. Interest Chart (Doughnut): Visualizes the 5 user categories from the prompt. Goal: Inform/Context. Library: Chart.js.
+         3. Capability Radar (Radar): Compares the utility of NotebookLM features across different academic tasks. Goal: Compare. Library: Chart.js.
+         4. Interactive Tutorials: The main engine. Uses DOM manipulation to simulate uploading files and generating responses. Goal: Inform & Change. Method: Vanilla JS.
+         CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Navigation -->
+    <nav class="bg-white border-b border-stone-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-2xl font-bold serif-font text-stone-800">NotebookLM<span class="text-indigo-600">.edu</span></span>
+                </div>
+                <div class="hidden sm:flex items-center space-x-8">
+                    <button onclick="switchView('dashboard')" id="nav-dashboard" class="nav-btn active-tab px-3 py-2 text-sm">Panel General</button>
+                    <button onclick="switchView('tutorials')" id="nav-tutorials" class="nav-btn text-stone-500 hover:text-stone-900 px-3 py-2 text-sm">Laboratorio de Casos</button>
+                    <button onclick="switchView('tools')" id="nav-tools" class="nav-btn text-stone-500 hover:text-stone-900 px-3 py-2 text-sm">Herramientas Studio</button>
+                </div>
+                <!-- Mobile menu button placeholder -->
+                <div class="flex items-center sm:hidden">
+                    <button class="text-stone-500 hover:text-stone-900 p-2" onclick="toggleMobileMenu()">☰</button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden sm:hidden bg-white border-b border-stone-200 p-4">
+            <button onclick="switchView('dashboard'); toggleMobileMenu()" class="block w-full text-left py-2">Panel General</button>
+            <button onclick="switchView('tutorials'); toggleMobileMenu()" class="block w-full text-left py-2">Laboratorio de Casos</button>
+            <button onclick="switchView('tools'); toggleMobileMenu()" class="block w-full text-left py-2">Herramientas Studio</button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+
+        <!-- VIEW: DASHBOARD -->
+        <div id="view-dashboard" class="space-y-12 animate-fade-in">
+            
+            <!-- Header Section -->
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <h1 class="text-4xl font-bold text-stone-900 mb-4 serif-font">Capacitación en Inteligencia Artificial</h1>
+                <p class="text-lg text-stone-600 leading-relaxed">
+                    Bienvenido al entorno de aprendizaje para <strong>NotebookLM</strong>. Este módulo interactivo está diseñado para docentes, investigadores y administrativos. Aquí exploraremos cinco casos de uso críticos identificados en nuestra comunidad académica, desde la investigación de tesis hasta la gestión operativa.
+                </p>
+            </div>
+
+            <!-- Data Viz Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                
+                <!-- Chart 1: Interests -->
+                <div class="notebook-card p-6 rounded-lg">
+                    <h3 class="text-xl font-semibold mb-2 serif-font">Distribución de Intereses Detectados</h3>
+                    <p class="text-sm text-stone-500 mb-6">Análisis de las necesidades de los participantes del curso. El patrón más fuerte reside en la investigación académica.</p>
+                    <div class="chart-container">
+                        <canvas id="interestsChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 2: Tool Fit -->
+                <div class="notebook-card p-6 rounded-lg">
+                    <h3 class="text-xl font-semibold mb-2 serif-font">Potencial de Herramientas por Área</h3>
+                    <p class="text-sm text-stone-500 mb-6">Evaluación de qué funcionalidades de NotebookLM aportan mayor valor a cada eje temático.</p>
+                    <div class="chart-container">
+                        <canvas id="capabilitiesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Call to Action -->
+            <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-8 text-center">
+                <h2 class="text-2xl font-bold text-indigo-900 mb-2 serif-font">Comience su Práctica</h2>
+                <p class="text-indigo-700 mb-6 max-w-2xl mx-auto">
+                    Hemos preparado 5 tutoriales paso a paso con datos simulados para que experimente la potencia de NotebookLM en un entorno seguro.
+                </p>
+                <button onclick="switchView('tutorials')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-lg shadow transition-colors">
+                    Ir al Laboratorio de Casos &rarr;
+                </button>
+            </div>
+        </div>
+
+        <!-- VIEW: TUTORIALS (LABORATORY) -->
+        <div id="view-tutorials" class="hidden h-full flex flex-col">
+            
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-stone-900 serif-font">Laboratorio de Casos de Uso</h2>
+                <p class="text-stone-600">Seleccione un caso de estudio a la izquierda para cargar el entorno de simulación.</p>
+            </div>
+
+            <div class="flex flex-col lg:flex-row gap-6 h-full">
+                
+                <!-- Sidebar: Case Selector -->
+                <div class="w-full lg:w-1/4 flex flex-col gap-2">
+                    <button onclick="loadTutorial(0)" id="btn-case-0" class="case-btn text-left p-4 rounded-lg border border-stone-200 bg-white hover:bg-stone-50 transition-all shadow-sm active-case ring-2 ring-indigo-500">
+                        <div class="font-bold text-stone-800">1. Investigación y Tesis</div>
+                        <div class="text-xs text-stone-500 mt-1">Síntesis de papers y Estado del Arte</div>
+                    </button>
+                    <button onclick="loadTutorial(1)" id="btn-case-1" class="case-btn text-left p-4 rounded-lg border border-stone-200 bg-white hover:bg-stone-50 transition-all shadow-sm">
+                        <div class="font-bold text-stone-800">2. Planificación Estratégica</div>
+                        <div class="text-xs text-stone-500 mt-1">Alineación PEI vs POA</div>
+                    </button>
+                    <button onclick="loadTutorial(2)" id="btn-case-2" class="case-btn text-left p-4 rounded-lg border border-stone-200 bg-white hover:bg-stone-50 transition-all shadow-sm">
+                        <div class="font-bold text-stone-800">3. Gestión de Proyectos</div>
+                        <div class="text-xs text-stone-500 mt-1">Seguimiento y Análisis de Riesgos</div>
+                    </button>
+                    <button onclick="loadTutorial(3)" id="btn-case-3" class="case-btn text-left p-4 rounded-lg border border-stone-200 bg-white hover:bg-stone-50 transition-all shadow-sm">
+                        <div class="font-bold text-stone-800">4. Docencia (Medicina)</div>
+                        <div class="text-xs text-stone-500 mt-1">Guías de Estudio y Evaluaciones</div>
+                    </button>
+                    <button onclick="loadTutorial(4)" id="btn-case-4" class="case-btn text-left p-4 rounded-lg border border-stone-200 bg-white hover:bg-stone-50 transition-all shadow-sm">
+                        <div class="font-bold text-stone-800">5. Administración</div>
+                        <div class="text-xs text-stone-500 mt-1">Redacción y FAQs</div>
+                    </button>
+                </div>
+
+                <!-- Main: Workspace Simulation -->
+                <div class="w-full lg:w-3/4 flex flex-col gap-6">
+                    
+                    <!-- Panel 1: The Source Document (Left/Top) -->
+                    <div class="notebook-card rounded-lg flex flex-col overflow-hidden">
+                        <div class="bg-stone-100 border-b border-stone-200 p-3 flex justify-between items-center">
+                            <span class="font-semibold text-stone-700 flex items-center gap-2">
+                                <span class="bg-red-500 text-white rounded px-1 text-xs font-bold">PDF</span>
+                                <span id="source-title">Fuente Cargada</span>
+                            </span>
+                            <span class="text-xs text-stone-500 bg-white px-2 py-1 rounded border border-stone-200">Simulación</span>
+                        </div>
+                        <div class="p-6 bg-stone-50 flex-grow min-h-[150px] max-h-[300px] overflow-y-auto custom-scroll font-mono text-sm leading-relaxed text-stone-800" id="source-content">
+                            <!-- Content injected via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Panel 2: The Action Area (Studio/Chat) -->
+                    <div class="notebook-card rounded-lg flex flex-col p-6 flex-grow">
+                        <h3 class="text-lg font-bold mb-4 serif-font">Herramientas de NotebookLM</h3>
+                        
+                        <!-- Step Guide -->
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+                            <h4 class="font-bold text-blue-900 text-sm mb-1">Objetivo del Ejercicio:</h4>
+                            <p id="tutorial-objective" class="text-blue-800 text-sm">...</p>
+                        </div>
+
+                        <!-- Interaction Buttons -->
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6" id="tool-buttons">
+                            <!-- Dynamic Buttons -->
+                        </div>
+
+                        <!-- Chat Simulation -->
+                        <div class="border border-stone-300 rounded-lg p-4 bg-white">
+                            <label class="block text-xs font-bold text-stone-500 uppercase mb-2">Chat con la Fuente (Prompt)</label>
+                            <div class="flex gap-2">
+                                <input type="text" id="prompt-input" class="flex-grow border border-stone-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Escriba su instrucción aquí..." readonly>
+                                <button onclick="executePrompt()" class="bg-stone-800 text-white px-4 py-2 rounded text-sm hover:bg-black transition-colors">Enviar</button>
+                            </div>
+                        </div>
+
+                        <!-- Output Area -->
+                        <div id="output-area" class="mt-6 hidden animate-fade-in">
+                            <div class="border-t border-stone-200 pt-4">
+                                <h4 class="font-bold text-stone-800 mb-2 flex items-center">
+                                    <span class="text-indigo-600 mr-2">✦</span> Respuesta de NotebookLM:
+                                </h4>
+                                <div id="output-content" class="bg-indigo-50 rounded p-4 text-stone-800 text-sm leading-relaxed whitespace-pre-line border border-indigo-100">
+                                    <!-- Result -->
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: TOOLS INFO -->
+        <div id="view-tools" class="hidden">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-stone-900 serif-font">Guía de Funcionalidades "Studio"</h2>
+                <p class="text-stone-600 max-w-2xl mx-auto">
+                    NotebookLM no es solo un chat. La sección "Studio" (barra lateral izquierda en la app real) ofrece transformaciones predefinidas de sus documentos.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Tool Card 1 -->
+                <div class="notebook-card p-6 rounded-lg border-t-4 border-indigo-500">
+                    <h3 class="font-bold text-lg mb-2">Resumen (Summary)</h3>
+                    <p class="text-stone-600 text-sm mb-4">Genera automáticamente una síntesis del documento apenas se carga. Ideal para identificar rápidamente si la fuente es útil.</p>
+                    <div class="bg-stone-100 p-2 rounded text-xs text-stone-500 font-mono">Uso: Tutorial 1 (Tesis)</div>
+                </div>
+
+                <!-- Tool Card 2 -->
+                <div class="notebook-card p-6 rounded-lg border-t-4 border-pink-500">
+                    <h3 class="font-bold text-lg mb-2">Audio Overview</h3>
+                    <p class="text-stone-600 text-sm mb-4">Transforma el texto en una conversación tipo "podcast" entre dos anfitriones de IA. Excelente para aprendizaje auditivo mientras se realizan otras tareas.</p>
+                    <div class="bg-stone-100 p-2 rounded text-xs text-stone-500 font-mono">Uso: Tutorial 1 (Profundizar)</div>
+                </div>
+
+                <!-- Tool Card 3 -->
+                <div class="notebook-card p-6 rounded-lg border-t-4 border-emerald-500">
+                    <h3 class="font-bold text-lg mb-2">Briefing Doc</h3>
+                    <p class="text-stone-600 text-sm mb-4">Crea un documento formal con viñetas, temas principales y conclusiones. Perfecto para reuniones ejecutivas.</p>
+                    <div class="bg-stone-100 p-2 rounded text-xs text-stone-500 font-mono">Uso: Tutorial 2 (Estrategia)</div>
+                </div>
+
+                <!-- Tool Card 4 -->
+                <div class="notebook-card p-6 rounded-lg border-t-4 border-amber-500">
+                    <h3 class="font-bold text-lg mb-2">Cronología (Timeline)</h3>
+                    <p class="text-stone-600 text-sm mb-4">Extrae fechas y eventos para ordenarlos secuencialmente. Vital para auditorías y gestión de proyectos.</p>
+                    <div class="bg-stone-100 p-2 rounded text-xs text-stone-500 font-mono">Uso: Tutorial 3 (Proyectos)</div>
+                </div>
+
+                <!-- Tool Card 5 -->
+                <div class="notebook-card p-6 rounded-lg border-t-4 border-cyan-500">
+                    <h3 class="font-bold text-lg mb-2">Guía de Estudio</h3>
+                    <p class="text-stone-600 text-sm mb-4">Convierte material complejo en preguntas de repaso, glosarios y temas de ensayo. Herramienta clave para docentes y estudiantes.</p>
+                    <div class="bg-stone-100 p-2 rounded text-xs text-stone-500 font-mono">Uso: Tutorial 4 (Medicina)</div>
+                </div>
+
+                <!-- Tool Card 6 -->
+                <div class="notebook-card p-6 rounded-lg border-t-4 border-purple-500">
+                    <h3 class="font-bold text-lg mb-2">FAQ (Preguntas Frecuentes)</h3>
+                    <p class="text-stone-600 text-sm mb-4">Genera una lista de preguntas y respuestas probables basadas en el texto. Útil para comunicación interna.</p>
+                    <div class="bg-stone-100 p-2 rounded text-xs text-stone-500 font-mono">Uso: Tutorial 5 (Admin)</div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-white border-t border-stone-200 mt-auto py-8">
+        <div class="max-w-7xl mx-auto px-4 text-center text-stone-500 text-sm">
+            <p class="mb-2">Diseñado para el curso de "IA para Diseño y Evaluación de Proyectos".</p>
+            <p>Noviembre 2025. Material educativo basado en NotebookLM.</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- DATA & STATE ---
+        const tutorialData = [
+            {
+                id: 0,
+                title: "Tesis: Marco Teórico",
+                filename: "Estado_Arte_IA_Educacion.txt",
+                objective: "Sintetizar múltiples estudios científicos para identificar contradicciones y consensos en el estado del arte.",
+                sourceText: `"Estudio A (2024): El uso de LLMs en la educación superior ha demostrado reducir el tiempo de redacción en un 30%, pero plantea desafíos éticos significativos respecto a la autoría."\n\n"Estudio B (2025): En una muestra de 500 estudiantes de medicina, la personalización del aprendizaje mediante IA generativa aumentó la retención de conceptos complejos en un 15% en comparación con métodos tradicionales."\n\n"Estudio C (2023): La brecha digital sigue siendo el principal obstáculo para la implementación de tutores inteligentes en universidades rurales de América Latina."`,
+                prompt: "Identifica las contradicciones principales y los consensos entre los estudios mencionados respecto a la implementación de IA.",
+                tools: [
+                    { name: "Resumen Automático", action: "summary", output: "Resumen generado: Los estudios analizan el impacto de la IA en educación. Mientras el Estudio A y B destacan beneficios en eficiencia (30% menos tiempo) y retención (15% mejora), el Estudio C introduce una barrera estructural crítica: la brecha digital en zonas rurales, que podría limitar estos beneficios a sectores privilegiados." },
+                    { name: "Audio Overview (Personalizar)", action: "audio", output: "🎧 Audio Generado (Transcripción): \nHost 1: 'Es fascinante ver que la eficiencia sube un 30%, pero...' \nHost 2: 'Exacto, pero mira el estudio de 2023. De nada sirve esa eficiencia si no hay acceso a internet en zonas rurales. Esa es la verdadera contradicción aquí.'\n(Nota: Se ha configurado para mantener tono crítico)." }
+                ],
+                chatOutput: "Análisis de Contradicciones y Consensos:\n\n1. **Consenso sobre Eficacia:** Existe un acuerdo implícito entre el Estudio A y B de que la IA aporta mejoras métricas (tiempo y retención).\n2. **Contradicción Contextual:** El optimismo tecnológico de A y B choca con la realidad estructural planteada por C. La implementación exitosa descrita en medicina (B) podría ser inviable en las universidades rurales descritas en C debido a la infraestructura.\n3. **Tensión Ética:** El beneficio de velocidad (A) se contrapone a la preocupación por la autoría, sugiriendo que la rapidez no equivale necesariamente a calidad académica."
+            },
+            {
+                id: 1,
+                title: "Estrategia: PEI vs POA",
+                filename: "Planificacion_Institucional.txt",
+                objective: "Verificar la coherencia (alineación) entre lo planificado a 5 años y lo ejecutado en el último año operativo.",
+                sourceText: `"Objetivo Estratégico 2025-2030: Digitalizar el 80% de los trámites administrativos y reducir el uso de papel."\n\n"Reporte Operativo 2024 (DGTH): Se ha priorizado la contratación de personal para atención presencial. La inversión en software de gestión documental se pospuso para el periodo 2026 por falta de presupuesto. Se observa un aumento del 10% en el consumo de insumos de oficina."`,
+                prompt: "Analiza la coherencia entre el Objetivo Estratégico 2025-2030 y las acciones reportadas. Identifica explícitamente las desviaciones.",
+                tools: [
+                    { name: "Briefing Doc", action: "briefing", output: "DOCUMENTO DE INFORMACIÓN\n\n**Temas Principales:**\n* Metas de Digitalización 2030.\n* Prioridades de Gasto 2024.\n\n**Observación Clave:** Existe una desconexión crítica entre la visión a largo plazo y la ejecución a corto plazo." }
+                ],
+                chatOutput: "Análisis de Brechas (Gap Analysis):\n\n**Desviación Crítica Identificada:**\n\n* **Meta:** Digitalización y reducción de papel.\n* **Acción Real:** Contratación para atención presencial y aumento del 10% en consumo de papel.\n* **Causa Raíz:** Desvío presupuestario. La inversión en software fue pospuesta.\n\n**Conclusión:** El POA 2024 está trabajando activamente en contra del PEI 2025-2030."
+            },
+            {
+                id: 2,
+                title: "Proyectos: Riesgos",
+                filename: "Informe_Proyecto_Restauracion.txt",
+                objective: "Auditar un informe de avance para detectar riesgos financieros y operativos no explícitos.",
+                sourceText: `"Proyecto: Restauración de Cuenca Hídrica. Mes 3."\n"Actividad 1: Reforestación. Estado: 40% de avance. Retraso debido a lluvias intensas en la zona norte."\n"Actividad 2: Capacitación a comunidades. Estado: 100% completado."\n"Presupuesto: Se ha ejecutado el 60% de los fondos asignados a logística debido al aumento de precios de combustible no contemplado en el diseño original."`,
+                prompt: "Actúa como un auditor. Identifica los riesgos financieros y operativos que podrían poner en peligro la finalización del proyecto.",
+                tools: [
+                    { name: "Cronología (Timeline)", action: "timeline", output: "Línea de Tiempo Generada:\n- Inicio de Proyecto.\n- Mes 3: Hito de Capacitación (Completado).\n- Mes 3: Hito de Reforestación (Retrasado - Clima).\n- Actualidad: Ejecución presupuestaria al 60% en logística." }
+                ],
+                chatOutput: "Informe de Auditoría de Riesgos:\n\n1. **Riesgo Financiero Alto:** Se ha consumido el 60% del presupuesto logístico en solo 3 meses (asumiendo proyecto > 5 meses). El aumento de combustible es un factor externo no mitigado que provocará desfinanciamiento antes de finalizar la reforestación.\n2. **Riesgo Operativo Medio:** El retraso por lluvias en la reforestación puede empujar las actividades a una temporada climática aún menos favorable, aumentando costos logísticos ya inflados."
+            },
+            {
+                id: 3,
+                title: "Docencia: Medicina",
+                filename: "Protocolo_Cardiologia.txt",
+                objective: "Crear materiales de evaluación para estudiantes basados en textos técnicos complejos.",
+                sourceText: `"El tratamiento de la hipertensión arterial resistente se define como la presión arterial que permanece por encima del objetivo a pesar del uso concurrente de tres agentes antihipertensivos de diferentes clases. Se debe descartar la hipertensión de bata blanca y la falta de adherencia a la medicación antes de intensificar el tratamiento. La espironolactona es el cuarto fármaco de elección."`,
+                prompt: "Genera 3 preguntas de selección múltiple sobre el diagnóstico, incluyendo la respuesta correcta y retroalimentación.",
+                tools: [
+                    { name: "Guía de Estudio", action: "studyguide", output: "GUÍA DE ESTUDIO\n\n**Glosario:**\n- HTA Resistente.\n- Hipertensión de bata blanca.\n\n**Preguntas de Repaso:**\n1. ¿Cuántos fármacos deben fallar para diagnosticar resistencia?\n2. ¿Cuál es el cuarto fármaco sugerido?" }
+                ],
+                chatOutput: "Examen Generado:\n\n**Pregunta 1:** Antes de diagnosticar HTA resistente, ¿qué debe descartar el médico principalmente?\nA) Deficiencia de hierro.\nB) Hipertensión de bata blanca y falta de adherencia.\nC) Antecedentes familiares.\n\n*Respuesta Correcta: B. Retroalimentación: El texto indica explícitamente que estos son factores de confusión que simulan resistencia al tratamiento.*"
+            },
+            {
+                id: 4,
+                title: "Admin: Redacción",
+                filename: "Borrador_Administrativo.txt",
+                objective: "Transformar comunicaciones informales en documentos oficiales y útiles.",
+                sourceText: `"Hola a todos, se avisa que el sistema de la biblioteca va a estar caído el martes porque los de informática tienen que actualizar el servidor. Hay que avisar a los alumnos que no vengan a pedir libros ese día. También, se necesita que manden sus reportes antes del lunes."`,
+                prompt: "Reescribe el texto convirtiéndolo en una Circular Oficial dirigida a la comunidad académica. Utiliza un tono formal.",
+                tools: [
+                    { name: "FAQ (Preguntas Frecuentes)", action: "faq", output: "**Preguntas Frecuentes Generadas:**\n\nQ: ¿Cuándo estará inactivo el sistema?\nA: El próximo martes.\n\nQ: ¿Cuál es la fecha límite para los reportes?\nA: Antes del lunes." }
+                ],
+                chatOutput: "**CIRCULAR OFICIAL N° 045/2025**\n\n**FECHA:** Noviembre 2025\n**ASUNTO:** Mantenimiento Programado de Sistemas y Plazos Administrativos\n\nEstimada comunidad académica,\n\nPor medio de la presente se informa que el día martes se realizarán labores de actualización en los servidores de la biblioteca, por lo que el sistema de préstamos permanecerá inactivo. Se ruega tomar las previsiones necesarias.\n\nAsimismo, se recuerda al personal administrativo que la fecha límite para la entrega de reportes es el día lunes previo.\n\nAtentamente,\nLa Administración."
+            }
+        ];
+
+        let currentTutorialIndex = 0;
+
+        // --- CHART CONFIG ---
+        const initCharts = () => {
+            // Chart 1: Interests (Doughnut)
+            const ctx1 = document.getElementById('interestsChart').getContext('2d');
+            new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Inv. Académica (Tesis)', 'Plan. Estratégica', 'Gestión Proyectos', 'Docencia', 'Administración'],
+                    datasets: [{
+                        data: [35, 20, 15, 15, 15], // Estimated based on "Strongest pattern" vs others
+                        backgroundColor: ['#4f46e5', '#06b6d4', '#f59e0b', '#ec4899', '#64748b'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            // Chart 2: Capabilities (Radar)
+            const ctx2 = document.getElementById('capabilitiesChart').getContext('2d');
+            new Chart(ctx2, {
+                type: 'radar',
+                data: {
+                    labels: ['Análisis Profundo', 'Creatividad', 'Rapidez', 'Síntesis', 'Accesibilidad'],
+                    datasets: [{
+                        label: 'Investigación',
+                        data: [90, 40, 70, 95, 60],
+                        borderColor: '#4f46e5',
+                        backgroundColor: 'rgba(79, 70, 229, 0.2)'
+                    }, {
+                        label: 'Docencia',
+                        data: [60, 80, 80, 70, 90],
+                        borderColor: '#ec4899',
+                        backgroundColor: 'rgba(236, 72, 153, 0.2)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            suggestedMin: 0,
+                            suggestedMax: 100
+                        }
+                    }
+                }
+            });
+        };
+
+        // --- NAVIGATION LOGIC ---
+        function switchView(viewId) {
+            // Hide all
+            ['dashboard', 'tutorials', 'tools'].forEach(v => {
+                document.getElementById('view-' + v).classList.add('hidden');
+                document.getElementById('nav-' + v).classList.remove('active-tab', 'text-indigo-600');
+                document.getElementById('nav-' + v).classList.add('text-stone-500');
+            });
+
+            // Show selected
+            document.getElementById('view-' + viewId).classList.remove('hidden');
+            document.getElementById('nav-' + viewId).classList.add('active-tab', 'text-indigo-600');
+            document.getElementById('nav-' + viewId).classList.remove('text-stone-500');
+
+            // Scroll top
+            window.scrollTo(0,0);
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // --- TUTORIAL SIMULATION LOGIC ---
+        function loadTutorial(index) {
+            currentTutorialIndex = index;
+            const data = tutorialData[index];
+
+            // Update Sidebar UI
+            document.querySelectorAll('.case-btn').forEach((btn, idx) => {
+                if(idx === index) {
+                    btn.classList.add('ring-2', 'ring-indigo-500', 'bg-stone-50');
+                } else {
+                    btn.classList.remove('ring-2', 'ring-indigo-500', 'bg-stone-50');
+                }
+            });
+
+            // Update Content
+            document.getElementById('source-title').innerText = data.filename;
+            document.getElementById('source-content').innerText = data.sourceText;
+            document.getElementById('tutorial-objective').innerText = data.objective;
+            
+            // Setup Prompt Input
+            document.getElementById('prompt-input').value = data.prompt;
+
+            // Setup Tools Buttons
+            const toolsContainer = document.getElementById('tool-buttons');
+            toolsContainer.innerHTML = '';
+            
+            data.tools.forEach(tool => {
+                const btn = document.createElement('button');
+                btn.className = "bg-white border border-stone-300 text-stone-700 px-3 py-2 rounded shadow-sm hover:bg-stone-50 text-xs font-bold transition-colors flex items-center justify-center gap-1";
+                btn.innerHTML = `<span class="text-indigo-500">⚡</span> ${tool.name}`;
+                btn.onclick = () => showToolOutput(tool.output);
+                toolsContainer.appendChild(btn);
+            });
+
+            // Reset Output
+            document.getElementById('output-area').classList.add('hidden');
+            document.getElementById('output-content').innerHTML = '';
+        }
+
+        function showToolOutput(text) {
+            const outputArea = document.getElementById('output-area');
+            const outputContent = document.getElementById('output-content');
+            outputContent.innerText = text;
+            outputArea.classList.remove('hidden');
+            
+            // Small highlight animation
+            outputContent.classList.add('bg-yellow-50');
+            setTimeout(() => outputContent.classList.remove('bg-yellow-50'), 300);
+        }
+
+        function executePrompt() {
+            const data = tutorialData[currentTutorialIndex];
+            const outputArea = document.getElementById('output-area');
+            const outputContent = document.getElementById('output-content');
+            
+            // Simulate processing delay
+            outputContent.innerHTML = '<span class="animate-pulse">Analizando documentos...</span>';
+            outputArea.classList.remove('hidden');
+
+            setTimeout(() => {
+                outputContent.innerText = data.chatOutput;
+            }, 800);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            loadTutorial(0); // Load first tutorial by default
+        });
+
+    </script>
+</body>
+</html>
